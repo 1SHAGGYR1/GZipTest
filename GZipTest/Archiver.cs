@@ -24,7 +24,7 @@ namespace CompDecomp
                         while (blockDivider < inStream.Length)
                         {
                             buffer = new Byte[(inStream.Length > blockDivider + moreThanInt * int.MaxValue + step) ? step : inStream.Length - (blockDivider + moreThanInt * int.MaxValue)];
-                            inStream.Read(buffer, blockDivider, buffer.Length);
+                            inStream.Read(buffer, 0, buffer.Length);
                             compresser.Write(buffer, 0, buffer.Length);
                             if (blockDivider + step > int.MaxValue)
                             {
@@ -42,19 +42,20 @@ namespace CompDecomp
         }
         public static void Decompress(string filein, string fileout)
         {
-            using (Stream outStream = new FileInfo(fileout).Open(FileMode.Create, FileAccess.ReadWrite))
+            using (Stream outStream = new FileInfo(fileout).Open(FileMode.Create, FileAccess.Write))
             {
                 using (Stream inStream = new FileInfo(filein).Open(FileMode.Open))
                 {
-                    using (GZipStream decompresser = new GZipStream(outStream, CompressionMode.Decompress))
+                    using (GZipStream decompresser = new GZipStream(inStream, CompressionMode.Decompress))
                     {
                         Byte[] buffer;
                         int moreThanInt = 0, blockDivider = 0;
                         while (blockDivider < inStream.Length)
                         {
                             buffer = new byte[(blockDivider + moreThanInt * int.MaxValue + step) > inStream.Length ? inStream.Length - (blockDivider + moreThanInt * int.MaxValue) : step];
-                            inStream.Read(buffer, blockDivider, buffer.Length);
                             decompresser.Read(buffer, 0, buffer.Length);
+                            outStream.Write(buffer, 0, buffer.Length);
+                            //decompresser.Write(buffer, 0, buffer.Length);
                             if (blockDivider + step > int.MaxValue)
                             {
                                 moreThanInt++;
